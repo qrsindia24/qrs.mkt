@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PEMF Marketing Analytics</title>
+    <!-- Include Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CSS Styles */
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --background: #f8fafc;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: var(--background);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .card h2 {
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4b5563;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .metric-card {
+            flex: 1 1 calc(50% - 20px);
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .metric-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 5px 0;
+        }
+
+        .metric-card .label {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>QRS India Private Limited - PEMF Marketing Analytics</h1>
+            <p>Track and analyze marketing performance in tier 3 cities</p>
+        </div>
+
+        <div class="grid">
+            <!-- Data Input Card -->
+            <div class="card">
+                <h2>Add New Event Data</h2>
+                <form id="eventForm">
+                    <div class="input-group">
+                        <label for="eventDate">Date</label>
+                        <input type="date" id="eventDate" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="eventType">Event Type</label>
+                        <select id="eventType" required>
+                            <option value="Medical Camp">Medical Camp</option>
+                            <option value="Doctor Visit">Doctor Visit</option>
+                            <option value="Community Event">Community Event</option>
+                            <option value="Door to Door">Door to Door</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="attendance">Attendance</label>
+                        <input type="number" id="attendance" min="0" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="inquiries">Inquiries</label>
+                        <input type="number" id="inquiries" min="0" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="conversions">Conversions</label>
+                        <input type="number" id="conversions" min="0" required>
+                    </div>
+                    <button type="submit">Add Event Data</button>
+                </form>
+            </div>
+
+            <!-- Event Performance Chart -->
+            <div class="card">
+                <h2>Event Performance Overview</h2>
+                <div class="chart-container">
+                    <canvas id="eventPerformanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Channel Performance Chart -->
+            <div class="card">
+                <h2>Marketing Channel Effectiveness</h2>
+                <div class="chart-container">
+                    <canvas id="channelPerformanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="card">
+                <h2>Key Performance Metrics</h2>
+                <div class="metrics">
+                    <div class="metric-card">
+                        <div class="value" id="totalAttendance">0</div>
+                        <div class="label">Total Attendance</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="value" id="totalInquiries">0</div>
+                        <div class="label">Total Inquiries</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="value" id="totalConversions">0</div>
+                        <div class="label">Total Conversions</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="value" id="conversionRate">0%</div>
+                        <div class="label">Overall Conversion Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Events Table -->
+            <div class="card">
+                <h2>Recent Events</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Event Type</th>
+                            <th>Attendance</th>
+                            <th>Inquiries</th>
+                            <th>Conversions</th>
+                            <th>Conversion Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventsTableBody">
+                        <!-- Data will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript Code
+        const eventData = JSON.parse(localStorage.getItem('pemfEventData')) || [];
+
+        // Initialize Charts
+        let eventPerformanceChart;
+        let channelPerformanceChart;
+
+        function initializeCharts() {
+            // Event Performance Chart
+            const ctxEvent = document.getElementById('eventPerformanceChart').getContext('2d');
+            eventPerformanceChart = new Chart(ctxEvent, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Attendance',
+                            data: [],
+                            borderColor: '#2563eb',
+                            backgroundColor: '#2563eb',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Inquiries',
+                            data: [],
+                            borderColor: '#16a34a',
+                            backgroundColor: '#16a34a',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Conversions',
+                            data: [],
+                            borderColor: '#dc2626',
+                            backgroundColor: '#dc2626',
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Number of People'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Channel Performance Chart
+            const ctxChannel = document.getElementById('channelPerformanceChart').getContext('2d');
+            channelPerformanceChart = new Chart(ctxChannel, {
+                type: 'bar',
+                data: {
+                    labels: ['Medical Camp', 'Doctor Visit', 'Community Event', 'Door to Door'],
+                    datasets: [{
+                        label: 'Conversion Rate (%)',
+                        data: [],
+                        backgroundColor: '#2563eb'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Event Type'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Conversion Rate (%)'
+                            },
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update Charts
+        function updateCharts() {
+            // Prepare data
+            const sortedData = eventData.slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+            const labels = sortedData.map(event => new Date(event.date).toLocaleDateString());
+            const attendanceData = sortedData.map(event => event.attendance);
+            const inquiriesData = sortedData.map(event => event.inquiries);
+            const conversionsData = sortedData.map(event => event.conversions);
+
+            // Update Event Performance Chart
+            eventPerformanceChart.data.labels = labels;
+            eventPerformanceChart.data.datasets[0].data = attendanceData;
+            eventPerformanceChart.data.datasets[1].data = inquiriesData;
+            eventPerformanceChart.data.datasets[2].data = conversionsData;
+            eventPerformanceChart.update();
+
+            // Calculate conversion rates per channel
+            const channels = ['Medical Camp', 'Doctor Visit', 'Community Event', 'Door to Door'];
+            const channelData = channels.map(channel => {
+                const channelEvents = eventData.filter(event => event.eventType === channel);
+                const totalInquiries = channelEvents.reduce((sum, event) => sum + event.inquiries, 0);
+                const totalConversions = channelEvents.reduce((sum, event) => sum + event.conversions, 0);
+                const conversionRate = totalInquiries > 0 ? (totalConversions / totalInquiries) * 100 : 0;
+                return conversionRate.toFixed(2);
+            });
+
+            // Update Channel Performance Chart
+            channelPerformanceChart.data.datasets[0].data = channelData;
+            channelPerformanceChart.update();
+        }
+
+        // Update Metrics
+        function updateMetrics() {
+            const totalAttendance = eventData.reduce((sum, event) => sum + event.attendance, 0);
+            const totalInquiries = eventData.reduce((sum, event) => sum + event.inquiries, 0);
+            const totalConversions = eventData.reduce((sum, event) => sum + event.conversions, 0);
+            const overallConversionRate = totalInquiries > 0 ? (totalConversions / totalInquiries) * 100 : 0;
+
+            document.getElementById('totalAttendance').textContent = totalAttendance;
+            document.getElementById('totalInquiries').textContent = totalInquiries;
+            document.getElementById('totalConversions').textContent = totalConversions;
+            document.getElementById('conversionRate').textContent = overallConversionRate.toFixed(2) + '%';
+        }
+
+        // Update Events Table
+        function updateEventsTable() {
+            const tbody = document.getElementById('eventsTableBody');
+            tbody.innerHTML = '';
+
+            eventData.slice().reverse().forEach(event => {
+                const tr = document.createElement('tr');
+                const conversionRate = event.inquiries > 0 ? ((event.conversions / event.inquiries) * 100).toFixed(2) + '%' : '0%';
+                tr.innerHTML = `
+                    <td>${new Date(event.date).toLocaleDateString()}</td>
+                    <td>${event.eventType}</td>
+                    <td>${event.attendance}</td>
+                    <td>${event.inquiries}</td>
+                    <td>${event.conversions}</td>
+                    <td>${conversionRate}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Form Submission
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const date = document.getElementById('eventDate').value;
+            const eventType = document.getElementById('eventType').value;
+            const attendance = parseInt(document.getElementById('attendance').value);
+            const inquiries = parseInt(document.getElementById('inquiries').value);
+            const conversions = parseInt(document.getElementById('conversions').value);
+
+            const newEvent = {
+                date,
+                eventType,
+                attendance,
+                inquiries,
+                conversions
+            };
+
+            eventData.push(newEvent);
+            localStorage.setItem('pemfEventData', JSON.stringify(eventData));
+
+            updateCharts();
+            updateMetrics();
+            updateEventsTable();
+
+            this.reset();
+        });
+
+        // Initialize Dashboard
+        initializeCharts();
+        updateCharts();
+        updateMetrics();
+        updateEventsTable();
+    </script>
+</body>
+</html>
